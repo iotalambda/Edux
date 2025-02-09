@@ -1,0 +1,164 @@
+﻿@page "/"
+
+@inherits EduxComponentBase
+
+@using Microsoft.SemanticKernel
+@using Microsoft.SemanticKernel.ChatCompletion
+@inject IChatCompletionService chatCompletionService
+@inject Kernel kernel
+
+@using EduxEventHandlerManager = Edux.Web.Stuff.Rare.EduxEventHandlerManager
+@inject IJsUtils jsUtils
+@inject IEduxJs eduxJs
+@inject EduxEventHandlerManager eduxEventHandlerManager
+
+<PageTitle>Edux</PageTitle>
+
+<RadzenSplitter Orientation=@Orientation.Horizontal class="full">
+    <RadzenSplitterPane id="edux-root-container" Size="70%">
+        <div id="edux-root" class="full">
+        </div>
+    </RadzenSplitterPane>
+    <RadzenSplitterPane Size="30%">
+        <RadzenStack Orientation=@Orientation.Vertical class="full">
+            <RadzenStack id="edux-chathistory" Orientation=@Orientation.Vertical Style="flex: 1; padding: .5em; overflow-y: auto">
+                @foreach (var m in chatHistory)
+                {
+                    @if (m.Role == AuthorRole.User && m.Items.OfType<TextContent>().FirstOrDefault() is { Text: { } userText })
+                    {
+                        <RadzenStack Orientation=@Orientation.Horizontal JustifyContent=@JustifyContent.Right style="padding-left: 2em">
+                            <RadzenCard>
+                                @userText
+                            </RadzenCard>
+                        </RadzenStack>
+                    }
+
+                    @if (m.Role == AuthorRole.Assistant && m.Items.OfType<TextContent>().FirstOrDefault() is { Text: { } assistantText})
+                    {
+                        <RadzenStack Orientation=@Orientation.Horizontal JustifyContent=@JustifyContent.Left style="padding-right: 2em">
+                            <RadzenCard>
+                                @assistantText
+                            </RadzenCard>
+                        </RadzenStack>
+                    }
+                }
+            </RadzenStack>
+            <RadzenStack Orientation=@Orientation.Horizontal Style="flex: 0; padding: .5em">
+                <RadzenTextArea @ref=chatUserMessageTextArea @bind-Value=chatUserMessage Placeholder="Say something..." Style="width: 100%; resize: none" Rows="3" @onkeypress=@((KeyboardEventArgs k) => { if (!k.ShiftKey && k.Key == "Enter") { SubmitChat(); } } )>
+                </RadzenTextArea>
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenSplitterPane>
+</RadzenSplitter>
+
+
+@code {
+    readonly ChatHistory chatHistory = new();
+    readonly PromptExecutionSettings promptExecutionSettings = new()
+    {
+        FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
+    };
+    RadzenTextArea? chatUserMessageTextArea;
+    string chatUserMessage = "";
+
+    protected override void OnInitialized()
+    {
+        chatHistory.AddSystemMessage(""""
+            You are an assistant embedded to an application called EDUX.
+            Your job is to develop a Javascript based EVENT HANDLER based on USER''s requirements.
+            You should use the tool called `add_individual_js_if_statement` for this.
+            """");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await eduxJs.SetEventHandlerJs(eduxEventHandlerManager.GetEventHandlerJs(), Ct);
+            await eduxJs.HandleEduxEvent("PageLoad", Ct);
+        }
+    }
+
+    void SubmitChat() => InvokeAsync(async () =>
+    {
+        if (chatUserMessageTextArea is not { })
+            return;
+
+        bool ok;
+
+        try
+        {
+            ok = await TryAsync(async () =>
+            {
+                await jsUtils.Blur(Ct);
+                chatHistory.AddUserMessage(chatUserMessage);
+                chatUserMessage = "";
+                StateHasChanged();
+                return true;
+
+            }, "An error occurred.");
+
+            if (!ok)
+                return;
+
+            (ok, ChatMessageContent assistantChatMessageContent) = await TryWithResultAsync(async () =>
+            {
+                var assistantChatMessageContent = await chatCompletionService.GetChatMessageContentAsync(chatHistory, promptExecutionSettings, kernel, cancellationToken: Ct);
+                return (true, assistantChatMessageContent);
+
+            }, "Chatting with the remote LLM failed.", 3);
+
+            if (!ok)
+                return;
+
+            (ok, string assistantChatMessageText) = TryWithResult(() =>
+            {
+                if (assistantChatMessageContent.Items.OfType<TextContent>().FirstOrDefault() is not { Text: { } assistantChatMessageText })
+                    return (false, default!);
+
+                return (true, assistantChatMessageText);
+
+            }, "Processing response from the remote LLM failed.");
+
+            if (!ok)
+                return;
+
+            ok = await TryAsync(async () =>
+            {
+                chatHistory.AddAssistantMessage(assistantChatMessageText);
+                StateHasChanged();
+                await jsUtils.ScrollToBottom("edux-chathistory", Ct);
+                return true;
+            
+            }, "Adding remote LLM response to chat history failed.");
+
+            if (!ok)
+                return;
+
+            ok = await TryAsync(async () =>
+            {
+                await eduxJs.ResetEduxRoot(Ct);
+                await eduxJs.SetEventHandlerJs(eduxEventHandlerManager.GetEventHandlerJs(), Ct);
+                await eduxJs.HandleEduxEvent("PageLoad", Ct);
+                return true;
+
+            }, "Could not refresh the page view.");
+
+            if (!ok)
+                return;
+        }
+        finally
+        {
+            if (!Disposed)
+            {
+                await TryAsync(async () =>
+                {
+                    StateHasChanged();
+                    await chatUserMessageTextArea.FocusAsync();
+                    return true;
+
+                }, "Could not focus onto the chat message text area.");
+            }
+        }
+    });
+}

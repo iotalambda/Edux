@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RtSettingsXml>$([MSBuild]::EnsureTrailingSlash($(MSBuildProjectDirectory)))Stuff/Rare/ReinforcedTypings/Reinforced.Typings.settings.xml</RtSettingsXml>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
+    <PackageReference Include="Azure.Identity" Version="1.13.2" />
+    <PackageReference Include="DnsClient" Version="1.8.0" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.35.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.35.0" />
+    <PackageReference Include="Radzen.Blazor" Version="5.9.8" />
+    <PackageReference Include="Reinforced.Typings" Version="1.6.5" />
+    <PackageReference Include="Scrutor" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\js\dist\" />
+  </ItemGroup>
+  <Target Name="CompileTypeScript"></Target>
+
+  <!-- Ensure dist -->
+  <PropertyGroup>
+    <ScriptsDir>$([MSBuild]::EnsureTrailingSlash($(MSBuildProjectDirectory)))Scripts/edux-scripts</ScriptsDir>
+    <NpmBuildOutDir>$([MSBuild]::EnsureTrailingSlash($(MSBuildProjectDirectory)))wwwroot/js/dist</NpmBuildOutDir>
+  </PropertyGroup>
+  <Target Name="RunNpmBuild" BeforeTargets="Build">
+    <Exec Command="PowerShell -Command ^&#xD;&#xA;      &quot;$npmBuildOutDirExists = Test-Path -Path '$(NpmBuildOutDir)';&quot; ^&#xD;&#xA;      &quot;$npmBuildOutDirIsEmpty = if ($npmBuildOutDirExists) { (Get-ChildItem -Path '$(NpmBuildOutDir)' -Recurse).Count -eq 0 } else { $true };&quot; ^&#xD;&#xA;      &quot;if ($npmBuildOutDirIsEmpty) {&quot; ^&#xD;&#xA;      &quot;  Write-Host 'NpmBuildOutDir is empty. Running npm install...';&quot; ^&#xD;&#xA;      &quot;  cd '$(ScriptsDir)';&quot; ^&#xD;&#xA;      &quot;  npm install;&quot; ^&#xD;&#xA;      &quot;  npm run build;&quot; ^&#xD;&#xA;      &quot;} else {&quot; ^&#xD;&#xA;      &quot;  $dateA = (Get-ChildItem -LiteralPath '$(ScriptsDir)' -File -Recurse | Where-Object { $_.FullName -notlike '*\node_modules\*' -and $_.Name -ne 'typings.ts' } | Sort-Object LastWriteTime -Descending | Select-Object -First 1).LastWriteTime;&quot; ^&#xD;&#xA;      &quot;  $dateB = (Get-ChildItem -LiteralPath '$(NpmBuildOutDir)' -File -Recurse | Sort-Object LastWriteTime -Descending | Select-Object -First 1).LastWriteTime;&quot; ^&#xD;&#xA;      &quot;  if ($dateA -gt $dateB) {&quot; ^&#xD;&#xA;      &quot;    Write-Host 'Scripts are newer than dist. Building scripts...' ;&quot; ^&#xD;&#xA;      &quot;    Write-Host $dateA;&quot; ^&#xD;&#xA;      &quot;    Write-Host $dateB;&quot; ^&#xD;&#xA;      &quot;    cd '$(ScriptsDir)';&quot; ^&#xD;&#xA;      &quot;    npm run build;&quot; ^&#xD;&#xA;      &quot;  }&quot; ^&#xD;&#xA;      &quot;}&quot;" />
+  </Target>
+
+</Project>

@@ -1,0 +1,108 @@
+﻿@implements IAsyncDisposable
+@inject NotificationService notificationService
+
+@code {
+
+    [AutoDisposable]
+    readonly CancellationTokenSource cts;
+
+    protected CancellationToken Ct { get; }
+
+    protected bool Disposed => Ct.IsCancellationRequested;
+
+    public EduxComponentBase()
+    {
+        cts = new();
+        Ct = cts.Token;
+    }
+
+    protected virtual void Dispose() { }
+    protected virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    protected async Task<bool> TryAsync(Func<Task<bool>> task, string userErrorMessage)
+    {
+        var (ok, _) = await TryWithResultAsync<bool>(async () => (await task(), true), userErrorMessage);
+        return ok;
+    }
+
+    protected async Task<(bool, TResult)> TryWithResultAsync<TResult>(Func<Task<(bool, TResult)>> task, string userErrorMessage, int retries = 0)
+    {
+        if (Disposed)
+            return (false, default(TResult)!);
+        
+        do
+        {
+            try
+            {
+                var (ok, result) = await task();
+                if (!ok)
+                    notificationService.Notify(NotificationSeverity.Error, userErrorMessage);
+
+                return (ok, result);
+            }
+            catch when (Disposed) { return (false, default(TResult)!); }
+            catch (Exception)
+            {
+                if (retries-- > 0)
+                    continue;
+
+                notificationService.Notify(NotificationSeverity.Error, userErrorMessage);
+                throw;
+            }
+        }
+        while (false);
+
+        throw new Exception("Should not get here.");
+    }
+
+    protected void Try(Func<bool> action, string userErrorMessage)
+    {
+        TryWithResult<bool>(() => (action(), true), userErrorMessage);
+    }
+
+    protected (bool, TResult) TryWithResult<TResult>(Func<(bool, TResult)> action, string userErrorMessage)
+    {
+        return TryWithResultAsync<TResult>(() => Task.FromResult(action()), userErrorMessage).Result;
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (Disposed)
+            return;
+
+        List<Exception>? exceptions = null;
+
+        try
+        {
+            await cts.CancelAsync();
+        }
+        catch when (Disposed) { }
+        catch (Exception e)
+        {
+            (exceptions ??= []).Add(e);
+        }
+
+        try
+        {
+            Dispose();
+            await DisposeAsync();
+        }
+        catch when (Disposed) { }
+        catch (Exception e)
+        {
+            (exceptions ??= []).Add(e);
+        }
+
+        try
+        {
+            await Utils.DisposeAutoDisposables(this);
+        }
+        catch (Exception e)
+        {
+            (exceptions ??= []).Add(e);
+        }
+
+        if (exceptions is [_, ..])
+            throw new AggregateException(exceptions);
+    }
+}
