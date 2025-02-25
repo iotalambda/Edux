@@ -1,5 +1,7 @@
-﻿@implements IAsyncDisposable
+﻿@typeparam TComponent
+@implements IAsyncDisposable
 @inject NotificationService notificationService
+@inject ILogger<TComponent> logger;
 
 @code {
 
@@ -9,6 +11,8 @@
     protected CancellationToken Ct { get; }
 
     protected bool Disposed => Ct.IsCancellationRequested;
+
+    protected ILogger<TComponent> Logger => logger;
 
     public EduxComponentBase()
     {
@@ -41,11 +45,10 @@
                 return (ok, result);
             }
             catch when (Disposed) { return (false, default(TResult)!); }
-            catch (Exception)
+            catch (Exception) when (retries-- > 0) { continue; }
+            catch (Exception e)
             {
-                if (retries-- > 0)
-                    continue;
-
+                logger.LogError(e, $"EDUX: Operation failed with {nameof(userErrorMessage)} '{userErrorMessage}'.");
                 notificationService.Notify(NotificationSeverity.Error, userErrorMessage);
                 throw;
             }
