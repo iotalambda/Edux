@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Reflection;
-using System.Security.Cryptography;
+﻿using System.Reflection;
 
 namespace Edux.Web.Stuff;
 
@@ -52,22 +50,4 @@ public static class Utils
         if (exceptions is [_, ..])
             throw new AggregateException(exceptions);
     }
-
-    static readonly ConcurrentDictionary<string, string> wwwrootFileHashes = [];
-    public static string GetWwwrootFileHash(string filePath, IWebHostEnvironment webHostEnvironment)
-    {
-        var hash = wwwrootFileHashes.GetOrAdd(filePath, filePath =>
-        {
-            var fullPath = Path.Combine(webHostEnvironment.WebRootPath, filePath);
-            using var hashAlgo = SHA256.Create();
-            using var fs = File.OpenRead(fullPath);
-            var hashBytes = hashAlgo.ComputeHash(fs);
-            var hash = BitConverter.ToString(hashBytes).Replace("-", "");
-            return hash;
-        });
-
-        return hash;
-    }
-
-    public static string ResolveJsMethodName(string csMethodName) => $"default.{csMethodName[0..1].ToLower()}{csMethodName[1..]}";
 }

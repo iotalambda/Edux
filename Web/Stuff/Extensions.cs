@@ -35,7 +35,7 @@ public static class Extensions
 
     public static async Task<IJSObjectReference> ImportModule(this IJSRuntime js, IWebHostEnvironment webHostEnvironment, string modulePath, CancellationToken ct)
     {
-        var hash = Utils.GetWwwrootFileHash(modulePath, webHostEnvironment);
+        var hash = Rare.Utils.WwwrootFileHashUtils.GetWwwrootFileHash(modulePath, webHostEnvironment);
         var module = await js.InvokeAsync<IJSObjectReference>("import", ct, [$"{modulePath}?hash={hash}"]);
         return module;
     }

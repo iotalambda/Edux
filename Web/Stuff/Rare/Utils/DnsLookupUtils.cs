@@ -1,6 +1,6 @@
 ﻿using DnsClient;
 
-namespace Edux.Web.Stuff.Rare;
+namespace Edux.Web.Stuff.Rare.Utils;
 
 public class DnsLookupUtils
 {

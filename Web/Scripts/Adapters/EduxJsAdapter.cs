@@ -1,5 +1,6 @@
 ﻿using Microsoft.JSInterop;
 using Reinforced.Typings.Attributes;
+using JsMethodNameUtils = Edux.Web.Stuff.Rare.Utils.JsMethodNameUtils;
 
 namespace Edux.Web.Scripts.Adapters;
 
@@ -11,19 +12,19 @@ public class EduxJsAdapter(IJSRuntime js, IWebHostEnvironment webHostEnvironment
     public async Task HandleEduxEvent(string eduxEventKey, [TsIgnore] CancellationToken ct)
     {
         var m = await Import(ct);
-        await m.InvokeVoidAsync(Utils.ResolveJsMethodName(nameof(HandleEduxEvent)), ct, [eduxEventKey]);
+        await m.InvokeVoidAsync(JsMethodNameUtils.ResolveJsMethodName(nameof(HandleEduxEvent)), ct, [eduxEventKey]);
     }
 
     public async Task SetEventHandlerJs(string value, [TsIgnore] CancellationToken ct)
     {
         var m = await Import(ct);
-        await m.InvokeVoidAsync(Utils.ResolveJsMethodName(nameof(SetEventHandlerJs)), ct, [value]);
+        await m.InvokeVoidAsync(JsMethodNameUtils.ResolveJsMethodName(nameof(SetEventHandlerJs)), ct, [value]);
     }
 
     public async Task ResetEduxRoot([TsIgnore] CancellationToken ct)
     {
         var m = await Import(ct);
-        await m.InvokeVoidAsync(Utils.ResolveJsMethodName(nameof(ResetEduxRoot)), ct);
+        await m.InvokeVoidAsync(JsMethodNameUtils.ResolveJsMethodName(nameof(ResetEduxRoot)), ct);
     }
 
     [TsIgnore]

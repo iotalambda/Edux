@@ -1,6 +1,5 @@
 using Azure.Identity;
 using Edux.Web.Components;
-using Edux.Web.Stuff.Rare;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -23,11 +22,11 @@ builder
     .AddTransient(sp =>
     {
         var kernel = new Kernel(sp);
-        kernel.ImportPluginFromType<EduxEventHandlerBuilderPlugin>();
+        kernel.ImportPluginFromType<Edux.Web.Stuff.Rare.EduxEventHandlerBuilderPlugin>();
         return kernel;
     });
 
-var keyVaultUri = await DnsLookupUtils.ResolveKeyVaultUri(configuration["KeyVault:HostName"] ?? throw new Exception("Key Vault uri not provided in configuration."));
+var keyVaultUri = await Edux.Web.Stuff.Rare.Utils.DnsLookupUtils.ResolveKeyVaultUri(configuration["KeyVault:HostName"] ?? throw new Exception("Key Vault uri not provided in configuration."));
 builder.Configuration
     .AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
 
