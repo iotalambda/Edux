@@ -1,4 +1,7 @@
-﻿using Microsoft.JSInterop;
+﻿using Azure.Core.Pipeline;
+using Azure.Security.KeyVault.Secrets;
+using Edux.Web.Stuff.Rare;
+using Microsoft.JSInterop;
 using System.Reflection;
 
 namespace Edux.Web.Stuff;
@@ -38,5 +41,17 @@ public static class Extensions
         var hash = Rare.Utils.WwwrootFileHashUtils.GetWwwrootFileHash(modulePath, webHostEnvironment);
         var module = await js.InvokeAsync<IJSObjectReference>("import", ct, [$"{modulePath}?hash={hash}"]);
         return module;
+    }
+
+    public static SecretClientOptions WithCustomDomainSupport(this SecretClientOptions options)
+    {
+        options.DisableChallengeResourceVerification = true; // Configured custom domain wont end with *.vault.azure.net.
+        HttpMessageHandler handler = new HttpClientHandler();
+        handler = new RequireCanonicalHostNameDelegatingHandler(h => h.EndsWith(".vault.azure.net")) // Ensure the canonical host name is used for actual Key Vault requests directly.
+        {
+            InnerHandler = handler
+        };
+        options.Transport = new HttpClientTransport(handler);
+        return options;
     }
 }

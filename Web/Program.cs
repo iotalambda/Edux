@@ -1,4 +1,6 @@
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Edux.Web.Components;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -26,9 +28,13 @@ builder
         return kernel;
     });
 
-var keyVaultUri = await Edux.Web.Stuff.Rare.Utils.DnsLookupUtils.ResolveKeyVaultUri(configuration["KeyVault:HostName"] ?? throw new Exception("Key Vault uri not provided in configuration."));
 builder.Configuration
-    .AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
+    .AddAzureKeyVault(
+        new SecretClient(
+            new Uri(configuration["KeyVault:Uri"] ?? throw new Exception("Key Vault uri not provided in configuration.")),
+            new DefaultAzureCredential(),
+            new SecretClientOptions().WithCustomDomainSupport()),
+        new AzureKeyVaultConfigurationOptions());
 
 builder.Services
     .AddRazorComponents()
