@@ -2,9 +2,9 @@ using System.Diagnostics;
 
 namespace Edux.Blazor.Stuff;
 
-public class ViteRunnerHostedService(IHostEnvironment environment) : IHostedService, IDisposable
+public class NextJSRunnerHostedService(IHostEnvironment environment) : IHostedService, IDisposable
 {
-    Process? vite = null;
+    Process? nextjs = null;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -21,7 +21,7 @@ public class ViteRunnerHostedService(IHostEnvironment environment) : IHostedServ
         fuserKill.Start();
         fuserKill.WaitForExit();
 
-        vite = new Process
+        nextjs = new Process
         {
             StartInfo = new()
             {
@@ -34,31 +34,31 @@ public class ViteRunnerHostedService(IHostEnvironment environment) : IHostedServ
             },
         };
 
-        vite.OutputDataReceived += (source, args) =>
+        nextjs.OutputDataReceived += (source, args) =>
         {
-            Console.WriteLine($"[EDUX] Vite OUT: {args.Data}");
+            Console.WriteLine($"[EDUX] NextJS OUT: {args.Data}");
         };
 
-        vite.ErrorDataReceived += (source, args) =>
+        nextjs.ErrorDataReceived += (source, args) =>
         {
-            Console.WriteLine($"[EDUX] Vite ERR: {args.Data}");
+            Console.WriteLine($"[EDUX] NextJS ERR: {args.Data}");
         };
 
-        vite.Start();
-        vite.BeginOutputReadLine();
-        vite.BeginErrorReadLine();
+        nextjs.Start();
+        nextjs.BeginOutputReadLine();
+        nextjs.BeginErrorReadLine();
 
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        if (vite is not { })
+        if (nextjs is not { })
         {
             return Task.CompletedTask;
         }
 
-        vite.Kill(true);
+        nextjs.Kill(true);
 
         return Task.CompletedTask;
     }
@@ -67,11 +67,11 @@ public class ViteRunnerHostedService(IHostEnvironment environment) : IHostedServ
     {
         GC.SuppressFinalize(this);
 
-        if (vite is not { })
+        if (nextjs is not { })
         {
             return;
         }
 
-        vite.Kill(true);
+        nextjs.Kill(true);
     }
 }
