@@ -1,0 +1,56 @@
+namespace Edux.Blazor.Stuff;
+
+public class NextJSReverseProxyReadinessMiddleware : IMiddleware
+{
+    int readinessState;
+    readonly TaskCompletionSource readyTcs = new();
+
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    {
+        if (readinessState == 0 && Interlocked.CompareExchange(ref readinessState, 1, 0) == 0)
+        {
+            var downstreamAddress = context
+                .GetReverseProxyFeature()
+                .AvailableDestinations[0]
+                .Model.Config.Address;
+            downstreamAddress = $"{downstreamAddress}d";
+            var attempt = 0;
+            const int attemptsMax = 10;
+            while (true)
+            {
+                attempt++;
+                try
+                {
+                    using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(
+                        timeoutCts.Token,
+                        context.RequestAborted
+                    );
+                    var httpClient = context
+                        .RequestServices.GetRequiredService<IHttpClientFactory>()
+                        .CreateClient();
+                    var res = await httpClient.GetAsync(downstreamAddress, cts.Token);
+                    res.EnsureSuccessStatusCode();
+                    readyTcs.SetResult();
+                    readinessState = 2;
+                    break;
+                }
+                catch when (attempt < attemptsMax)
+                {
+                    await Task.Delay(2);
+                }
+                catch (Exception e)
+                {
+                    readyTcs.SetException(e);
+                    throw;
+                }
+            }
+        }
+        else if (readinessState == 1)
+        {
+            await readyTcs.Task;
+        }
+
+        await next(context);
+    }
+}

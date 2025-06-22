@@ -1,7 +1,8 @@
 {
     "editor.formatOnSave": true,
     "[csharp]": {
-        "editor.defaultFormatter": "csharpier.csharpier-vscode"
+        "editor.defaultFormatter": "csharpier.csharpier-vscode",
+        "editor.codeActionsOnSave": [ "source.organizeImports" ]
     },
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"

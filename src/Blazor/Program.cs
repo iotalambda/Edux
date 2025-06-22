@@ -4,11 +4,14 @@ using Edux.Blazor.Stuff;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddHttpClient();
+
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddHostedService<NextJSRunnerHostedService>();
 
 builder.Services.AddReverseProxy().LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+builder.Services.AddSingleton<NextJSReverseProxyReadinessMiddleware>();
 
 var app = builder.Build();
 
@@ -21,7 +24,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.MapReverseProxy();
+app.MapReverseProxy(b => b.UseMiddleware<NextJSReverseProxyReadinessMiddleware>());
 app.UseWebSockets(); // For NextJS HMR
 
 app.UseHttpsRedirection();
