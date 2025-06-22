@@ -37,7 +37,7 @@ public class NextJSReverseProxyReadinessMiddleware : IMiddleware
                 }
                 catch when (attempt < attemptsMax)
                 {
-                    await Task.Delay(2);
+                    await Task.Delay(TimeSpan.FromSeconds(2));
                 }
                 catch (Exception e)
                 {

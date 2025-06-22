@@ -1,5 +1,6 @@
 using Edux.Blazor.Components;
 using Edux.Blazor.Stuff;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient();
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddRadzenComponents();
 
 builder.Services.AddHostedService<NextJSRunnerHostedService>();
 
