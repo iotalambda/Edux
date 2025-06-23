@@ -1,13 +1,58 @@
 @using Edux.Blazor.Stuff
 @implements IDisposable
 
+<style>
+    .loader {
+        height: 15px;
+        aspect-ratio: 4;
+        background:
+            no-repeat radial-gradient(farthest-side, #BFFCC6 90%, #0000) left,
+            no-repeat radial-gradient(farthest-side, #FFFFBA 90%, #0000) right;
+        background-size: 25% 100%;
+        display: grid;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+    }
+
+    .loader:before,
+    .loader:after {
+        content: "";
+        height: inherit;
+        aspect-ratio: 1;
+        grid-area: 1/1;
+        margin: auto;
+        border-radius: 50%;
+        transform-origin: -100% 50%;
+        animation: l49 1s infinite linear;
+    }
+
+    .loader:before {
+        background: #FFB3BA;
+        /* pastel pink */
+    }
+
+    .loader:after {
+        background: #BAE1FF;
+        /* pastel blue */
+        transform-origin: 200% 50%;
+        --s: -1;
+        animation-delay: -.5s;
+    }
+
+    @@keyframes l49 {
+
+        58%,
+        100% {
+            transform: rotate(calc(var(--s, 1) * 1turn));
+        }
+    }
+</style>
+
+
 @if (showLoader)
 {
-    <div>LOADING</div>
-}
-else
-{
-    <div>NOT LOADING</div>
+    <div class="loader"></div>
 }
 
 @code {
