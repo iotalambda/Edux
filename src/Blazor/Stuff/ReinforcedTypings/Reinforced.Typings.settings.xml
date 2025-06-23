@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project
+  ToolsVersion="4.0"
+  DefaultTargets="Build"
+  xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+>
+  <PropertyGroup>
+    <RtTargetFile>$(ProjectDir)Scripts/edux-scripts/src/typings.ts</RtTargetFile>
+    <RtConfigurationMethod>Edux.Blazor.Stuff.ReinforcedTypings.ReinforcedTypingsConfiguration.Configure</RtConfigurationMethod>
+    <RtBypassTypeScriptCompilation>false</RtBypassTypeScriptCompilation>
+    <RtDisable>false</RtDisable>
+    <RtSuppress>RTW0013;RTW0014;RT0008</RtSuppress>
+  </PropertyGroup>
+</Project>

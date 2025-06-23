@@ -4,9 +4,27 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  <PropertyGroup>
+    <RtSettingsXml>$([MSBuild]::EnsureTrailingSlash($(MSBuildProjectDirectory)))Stuff/ReinforcedTypings/Reinforced.Typings.settings.xml</RtSettingsXml>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Radzen.Blazor" Version="7.1.1" />
+    <PackageReference Include="Reinforced.Typings" Version="1.6.5" />
     <PackageReference Include="Scrutor" Version="6.1.0" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot/dist/js/" />
+  </ItemGroup>
+  <Target Name="CompileTypeScript"></Target>
+  <PropertyGroup>
+    <ProjectDirWithTrailing>$([MSBuild]::EnsureTrailingSlash($(MSBuildProjectDirectory)))</ProjectDirWithTrailing>
+  </PropertyGroup>
+  <Target Name="Scripts" BeforeTargets="Build">
+    <Exec Command="chmod +x $(ProjectDirWithTrailing)Build/build_scripts.sh" />
+    <Exec Command="$(ProjectDirWithTrailing)Build/build_scripts.sh $(ProjectDirWithTrailing)" />
+  </Target>
+  <Target Name="Tailwind" BeforeTargets="Compile">
+    <Exec Command="npx @tailwindcss/cli -i ./Styles/tailwind.css -o ./wwwroot/dist/css/tailwind.css" />
+  </Target>
 </Project>

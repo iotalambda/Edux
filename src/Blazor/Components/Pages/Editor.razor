@@ -5,34 +5,93 @@
 
 <PageTitle>Editor</PageTitle>
 
-<div style="display: flex; flex-direction: row; width: 100%; height: 100%;">
-    <iframe style="display: flex; flex: 1;" src="/d"></iframe>
-    <div style="display: flex; flex: 0; min-width: 24rem;">
-        <RadzenStack Style="display: flex; width: 100%;" Orientation=@Orientation.Vertical>
-            Test
-        </RadzenStack>
+<div class="flex flex-row w-full h-full">
+    <iframe class="flex flex-1" src="/d"></iframe>
+    <div class="flex flex-col w-96 h-screen">
+        <div id="edux-chathistory" class="flex-1 min-h-0 overflow-y-auto w-full">
+            <RadzenStack class="flex flex-col w-full" Gap="0" Orientation=@Orientation.Vertical>
+                @foreach (var message in messageHistory)
+                {
+                    @if (message.Role == EditorChatMessageRole.Service)
+                    {
+                        <div class="m-2 mr-6 p-6 bg-neutral-200 rounded-2xl">
+                            @message.Text
+                        </div>
+                    }
+
+                    @if (message.Role == EditorChatMessageRole.User)
+                    {
+                        <div class="m-2 ml-6 p-6 bg-neutral-200 rounded-2xl">
+                            @message.Text
+                        </div>
+                    }
+                }
+            </RadzenStack>
+        </div>
+        <div class="flex flex-0 w-full p-2">
+            <RadzenTextArea @ref=userMessageTextArea @bind-Value=userMessageValue class="w-full resize-none" Placeholder="Say something..."
+                Rows="5" @onkeypress=@((KeyboardEventArgs args) => { if (!args.ShiftKey && args.Key == "Enter") { SubmitChat(); } })>
+            </RadzenTextArea>
+        </div>
     </div>
 </div>
 
 @code {
 
+    public class EditorChatMessage
+    {
+        public required EditorChatMessageRole Role { get; init; }
+        public required string Text { get; init; }
+    }
+
+    public enum EditorChatMessageRole
+    {
+        Service,
+        User,
+    }
+
+    readonly List<EditorChatMessage> messageHistory = [];
     EduxInvoker? eduxInvoker;
+    RadzenTextArea? userMessageTextArea;
+    string userMessageValue = "";
     readonly ClaudeCodeCliHelper claudeCodeCliHelper;
     readonly NextJSReverseProxyReadinessMiddleware nextJSReverseProxyReadinessMiddleware;
+    readonly IJsUtils jsUtils;
 
     public Editor(ClaudeCodeCliHelper claudeCodeCliHelper, NextJSReverseProxyReadinessMiddleware
-    nextJSReverseProxyReadinessMiddleware)
+    nextJSReverseProxyReadinessMiddleware, IJsUtils jsUtils)
     {
         this.claudeCodeCliHelper = claudeCodeCliHelper;
         this.nextJSReverseProxyReadinessMiddleware = nextJSReverseProxyReadinessMiddleware;
+        this.jsUtils = jsUtils;
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
+            StateHasChanged();
             eduxInvoker!.Load(async ct => await claudeCodeCliHelper.Launch(ct));
             eduxInvoker!.Load(async ct => await nextJSReverseProxyReadinessMiddleware.Ready);
         }
+    }
+
+    void SubmitChat()
+    {
+        eduxInvoker!.Load(async ct =>
+        {
+            await jsUtils.Blur(ct);
+            messageHistory.Add(new() { Role = EditorChatMessageRole.User, Text = userMessageValue });
+            var promptedUserMessageValue = userMessageValue;
+            userMessageValue = "";
+            StateHasChanged();
+            var serviceResponseMessageValue = await claudeCodeCliHelper.Prompt(promptedUserMessageValue, ct) ?? "👽";
+            await jsUtils.ScrollToBottom("edux-chathistory", ct);
+            messageHistory.Add(new() { Role = EditorChatMessageRole.Service, Text = serviceResponseMessageValue });
+            StateHasChanged();
+            await jsUtils.ScrollToBottom("edux-chathistory", ct);
+            await userMessageTextArea!.FocusAsync();
+            StateHasChanged();
+        });
     }
 }
