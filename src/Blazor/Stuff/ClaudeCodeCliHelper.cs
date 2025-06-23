@@ -1,9 +1,10 @@
 using System.Diagnostics;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Edux.Blazor.Stuff;
 
-public class ClaudeCodeCliHelper(IHostEnvironment environment)
+public class ClaudeCodeCliHelper(IHostEnvironment environment) : ITransient
 {
     string? sessionId;
 
@@ -35,8 +36,7 @@ public class ClaudeCodeCliHelper(IHostEnvironment environment)
 
             if (args.Data is ['{', ..] data)
             {
-                promptResponse =
-                    System.Text.Json.JsonSerializer.Deserialize<ClaudeCodeCliPromptResponse>(data);
+                promptResponse = JsonSerializer.Deserialize<ClaudeCodeCliPromptResponse>(data);
             }
         };
         process.ErrorDataReceived += (source, args) =>
@@ -85,8 +85,7 @@ public class ClaudeCodeCliHelper(IHostEnvironment environment)
 
             if (args.Data is ['{', ..] data)
             {
-                promptResponse =
-                    System.Text.Json.JsonSerializer.Deserialize<ClaudeCodeCliPromptResponse>(data);
+                promptResponse = JsonSerializer.Deserialize<ClaudeCodeCliPromptResponse>(data);
             }
         };
         process.ErrorDataReceived += (source, args) =>

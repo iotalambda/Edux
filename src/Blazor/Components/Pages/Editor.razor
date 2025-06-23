@@ -1,0 +1,38 @@
+﻿@page "/"
+@using Edux.Blazor.Stuff
+
+<EduxInvoker @ref=@eduxInvoker />
+
+<PageTitle>Editor</PageTitle>
+
+<div style="display: flex; flex-direction: row; width: 100%; height: 100%;">
+    <iframe style="display: flex; flex: 1;" src="/d"></iframe>
+    <div style="display: flex; flex: 0; min-width: 24rem;">
+        <RadzenStack Style="display: flex; width: 100%;" Orientation=@Orientation.Vertical>
+            Test
+        </RadzenStack>
+    </div>
+</div>
+
+@code {
+
+    EduxInvoker? eduxInvoker;
+    readonly ClaudeCodeCliHelper claudeCodeCliHelper;
+    readonly NextJSReverseProxyReadinessMiddleware nextJSReverseProxyReadinessMiddleware;
+
+    public Editor(ClaudeCodeCliHelper claudeCodeCliHelper, NextJSReverseProxyReadinessMiddleware
+    nextJSReverseProxyReadinessMiddleware)
+    {
+        this.claudeCodeCliHelper = claudeCodeCliHelper;
+        this.nextJSReverseProxyReadinessMiddleware = nextJSReverseProxyReadinessMiddleware;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            eduxInvoker!.Load(async ct => await claudeCodeCliHelper.Launch(ct));
+            eduxInvoker!.Load(async ct => await nextJSReverseProxyReadinessMiddleware.Ready);
+        }
+    }
+}

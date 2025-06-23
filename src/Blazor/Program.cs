@@ -13,7 +13,8 @@ builder.Services.AddRadzenComponents();
 builder.Services.AddHostedService<NextJSRunnerHostedService>();
 
 builder.Services.AddReverseProxy().LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
-builder.Services.AddSingleton<NextJSReverseProxyReadinessMiddleware>();
+
+builder.Services.AddServicesByScanning();
 
 var app = builder.Build();
 

@@ -1,0 +1,33 @@
+@using Edux.Blazor.Stuff
+@implements IDisposable
+
+@if (showLoader)
+{
+    <div>LOADING</div>
+}
+else
+{
+    <div>NOT LOADING</div>
+}
+
+@code {
+    bool showLoader = false;
+    readonly EventSubscription onLoadingChangedEventSubscription;
+
+    public EduxLoader(LoadingHelper loadingHelper)
+    {
+        onLoadingChangedEventSubscription = new EventSubscription(loadingHelper.OnLoadingChanged, () =>
+        {
+            if (loadingHelper.IsLoading is { } isLoading && isLoading != showLoader)
+            {
+                showLoader = isLoading;
+                InvokeAsync(() => StateHasChanged());
+            }
+        });
+    }
+
+    public void Dispose()
+    {
+        onLoadingChangedEventSubscription.Dispose();
+    }
+}

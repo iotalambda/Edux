@@ -1,9 +1,11 @@
 namespace Edux.Blazor.Stuff;
 
-public class NextJSReverseProxyReadinessMiddleware : IMiddleware
+public class NextJSReverseProxyReadinessMiddleware : IMiddleware, ISingleton
 {
     int readinessState;
     readonly TaskCompletionSource readyTcs = new();
+
+    public Task Ready => readyTcs.Task;
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {

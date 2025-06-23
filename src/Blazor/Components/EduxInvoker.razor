@@ -1,0 +1,49 @@
+@using Edux.Blazor.Stuff
+@implements IDisposable
+@inject NotificationService NotificationService
+@inject LoadingHelper LoadingHelper
+
+@code {
+    public CancellationToken Ct { get; }
+
+    CancellationTokenSource cts;
+
+    public EduxInvoker()
+    {
+        cts = new();
+        Ct = cts.Token;
+    }
+
+    public async void Load(Func<CancellationToken, Task> action)
+    {
+        await Task.Yield();
+        await LoadInternal(action);
+    }
+
+    async Task LoadInternal(Func<CancellationToken, Task> action)
+    {
+        try
+        {
+            LoadingHelper.Increment();
+            await action(Ct);
+        }
+        catch when (Ct.IsCancellationRequested)
+        {
+            return;
+        }
+        catch
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error");
+        }
+        finally
+        {
+            LoadingHelper.Decrement();
+        }
+    }
+
+    void IDisposable.Dispose()
+    {
+        try { cts.Cancel(); } catch { }
+        try { cts.Dispose(); } catch { }
+    }
+}
