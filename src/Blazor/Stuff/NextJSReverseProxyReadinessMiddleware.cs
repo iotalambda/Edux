@@ -21,11 +21,7 @@ public class NextJSReverseProxyReadinessMiddleware : IMiddleware
                 attempt++;
                 try
                 {
-                    using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(
-                        timeoutCts.Token,
-                        context.RequestAborted
-                    );
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                     var httpClient = context
                         .RequestServices.GetRequiredService<IHttpClientFactory>()
                         .CreateClient();

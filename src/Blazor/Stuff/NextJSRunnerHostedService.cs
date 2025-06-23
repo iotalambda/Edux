@@ -41,7 +41,7 @@ public class NextJSRunnerHostedService(IHostEnvironment environment) : IHostedSe
 
         nextjs.ErrorDataReceived += (source, args) =>
         {
-            Console.WriteLine($"[EDUX] NextJS ERR: {args.Data}");
+            Console.Error.WriteLine($"[EDUX] NextJS ERR: {args.Data}");
         };
 
         nextjs.Start();
