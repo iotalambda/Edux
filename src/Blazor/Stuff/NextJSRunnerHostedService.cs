@@ -36,6 +36,7 @@ public class NextJSRunnerHostedService(IHostEnvironment environment) : IHostedSe
 
         nextjs.OutputDataReceived += (source, args) =>
         {
+            NextJSConsoleOutputBuffer.Push($"stdout: {args.Data}");
             Console.WriteLine($"[EDUX] NextJS OUT: {args.Data}");
         };
 
@@ -44,6 +45,7 @@ public class NextJSRunnerHostedService(IHostEnvironment environment) : IHostedSe
             if (args.Data?.Contains("EDUX_HMRHEARTBEAT") == true)
                 return;
 
+            NextJSConsoleOutputBuffer.Push($"stderr: {args.Data}");
             Console.Error.WriteLine($"[EDUX] NextJS ERR: {args.Data}");
         };
 

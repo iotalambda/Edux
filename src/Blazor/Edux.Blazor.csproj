@@ -8,6 +8,7 @@
     <RtSettingsXml>$([MSBuild]::EnsureTrailingSlash($(MSBuildProjectDirectory)))Stuff/ReinforcedTypings/Reinforced.Typings.settings.xml</RtSettingsXml>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="0.3.0-preview.1" />
     <PackageReference Include="Radzen.Blazor" Version="7.1.1" />
     <PackageReference Include="Reinforced.Typings" Version="1.6.5" />
     <PackageReference Include="Scrutor" Version="6.1.0" />

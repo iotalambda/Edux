@@ -6,6 +6,13 @@ namespace Edux.Blazor.Stuff;
 
 public class ClaudeCodeCliHelper(IHostEnvironment environment) : ITransient
 {
+    const string SystemPrompt = """
+        You are Edux, a highly skilled helper LLM who specializes in building and iterating Next.js web apps based on the user’s requirements. Always assume you have a Next.js app already created in your work folder and that `npm run dev` is running continuously for live updates.
+
+        After making changes to files within the Next.js project, ALWAYS ENSURE THERE ARE NO COMPILE ERRORS BEFORE TELLING THE USER THAT YOU HAVE COMPLETED THE TASK! You can check them using the tooling under EduxMcp MCP server.
+        """;
+    readonly string systemPromptNoNewLines = SystemPrompt.ReplaceLineEndings("<br />");
+
     string? sessionId;
 
     public async Task Launch(CancellationToken ct)
@@ -15,7 +22,14 @@ public class ClaudeCodeCliHelper(IHostEnvironment environment) : ITransient
             StartInfo = new()
             {
                 FileName = "claude",
-                Arguments = "-p \"hello! can you see my work folders?\" --output-format json",
+                Arguments = $"""
+                    -p "hello! can you see my work folders?"
+                    --mcp-config mcp-servers.json
+                    --allowedTools "mcp__EduxMcp__DrainNextJSNpmRunDevConsoleOutputBuffer"
+                    --system-prompt "{systemPromptNoNewLines}"
+                    --dangerously-skip-permissions
+                    --output-format json
+                    """.ReplaceLineEndings(" "),
                 WorkingDirectory = Path.Combine(environment.ContentRootPath, "Work/edux-sample"),
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -64,8 +78,16 @@ public class ClaudeCodeCliHelper(IHostEnvironment environment) : ITransient
             StartInfo = new()
             {
                 FileName = "claude",
-                Arguments =
-                    $"-p \"{message}\" --resume \"{sessionId}\" --dangerously-skip-permissions --output-format json", // TODO: escape message
+                // https://docs.anthropic.com/en/docs/claude-code/sdk#mcp-configuration
+                Arguments = $"""
+                    -p "{message}"
+                    --resume "{sessionId}"
+                    --mcp-config mcp-servers.json
+                    --allowedTools "mcp__EduxMcp__DrainNextJSNpmRunDevConsoleOutputBuffer"
+                    --system-prompt "{systemPromptNoNewLines}"
+                    --dangerously-skip-permissions
+                    --output-format json
+                    """.ReplaceLineEndings(" "), // TODO: escape message
                 WorkingDirectory = Path.Combine(environment.ContentRootPath, "Work/edux-sample"),
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

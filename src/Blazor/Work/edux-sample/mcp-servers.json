@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "EduxMcp": {
+      "type": "http",
+      "url": "http://localhost:5284/mcp"
+    }
+  }
+}
