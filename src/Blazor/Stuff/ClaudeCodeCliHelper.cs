@@ -64,7 +64,8 @@ public class ClaudeCodeCliHelper(IHostEnvironment environment) : ITransient
             StartInfo = new()
             {
                 FileName = "claude",
-                Arguments = $"-p \"{message}\" --resume \"{sessionId}\" --output-format json", // TODO: escape message
+                Arguments =
+                    $"-p \"{message}\" --resume \"{sessionId}\" --dangerously-skip-permissions --output-format json", // TODO: escape message
                 WorkingDirectory = Path.Combine(environment.ContentRootPath, "Work/edux-sample"),
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

@@ -41,6 +41,9 @@ public class NextJSRunnerHostedService(IHostEnvironment environment) : IHostedSe
 
         nextjs.ErrorDataReceived += (source, args) =>
         {
+            if (args.Data?.Contains("EDUX_HMRHEARTBEAT") == true)
+                return;
+
             Console.Error.WriteLine($"[EDUX] NextJS ERR: {args.Data}");
         };
 

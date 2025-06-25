@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Dashboard from "./components/Dashboard";
+import HmrHeartbeat from "./components/HmrHeartbeat";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,9 +26,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased dark:bg-gray-950`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased dark:bg-gray-950`}>
+        <HmrHeartbeat />
         <Dashboard>{children}</Dashboard>
       </body>
     </html>
