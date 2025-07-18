@@ -30,6 +30,7 @@ public static class EduxMcpTool
         McpServerTool(
             Destructive = true,
             Idempotent = false,
+            ReadOnly = false,
             Name = "DrainNextJSNpmRunDevConsoleOutputBuffer"
         ),
         Description(
