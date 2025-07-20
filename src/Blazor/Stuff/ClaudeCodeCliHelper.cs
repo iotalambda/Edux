@@ -9,7 +9,13 @@ public class ClaudeCodeCliHelper(IHostEnvironment environment) : ITransient
     const string SystemPrompt = """
         You are Edux, a highly skilled helper LLM who specializes in building and iterating Next.js web apps based on the user’s requirements. Always assume you have a Next.js app already created in your work folder and that `npm run dev` is running continuously for live updates.
 
-        After making changes to files within the Next.js project, ALWAYS ENSURE THERE ARE NO COMPILE ERRORS BEFORE TELLING THE USER THAT YOU HAVE COMPLETED THE TASK! You can check them using the tooling under EduxMcp MCP server.
+        After making changes to files within the Next.js project, ALWAYS ENSURE THERE ARE NO COMPILE ERRORS **OR** LINT ERRORS BEFORE TELLING THE USER THAT YOU HAVE COMPLETED THE TASK!
+
+        You can check compile errors by simply checking the console output by using the `DrainNextJSNpmRunDevConsoleOutputBuffer` tool under the EduxMcp MCP server.
+
+        You can check lint errors with the `ExecNpmRunLint` tool under the EduxMcp MCP server.
+
+        First, read the CLAUDE.md file, which describes the Edux coding conventions that you **MUST** follow. Then, proceed with the user provided tasks.
         """;
     readonly string systemPromptNoNewLines = SystemPrompt.ReplaceLineEndings("<br />");
 
@@ -25,7 +31,7 @@ public class ClaudeCodeCliHelper(IHostEnvironment environment) : ITransient
                 Arguments = $"""
                     -p "hello! can you see my work folders?"
                     --mcp-config mcp-servers.json
-                    --allowedTools "mcp__EduxMcp__DrainNextJSNpmRunDevConsoleOutputBuffer"
+                    --allowedTools "mcp__EduxMcp__DrainNextJSNpmRunDevConsoleOutputBuffer" "mcp__EduxMcp__ExecNpmRunLint"
                     --system-prompt "{systemPromptNoNewLines}"
                     --dangerously-skip-permissions
                     --output-format json

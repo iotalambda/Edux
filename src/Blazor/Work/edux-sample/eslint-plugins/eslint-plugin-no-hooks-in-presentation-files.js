@@ -15,7 +15,8 @@ const rule = {
   },
   create(context) {
     const filename = context.filename;
-    const isPresentationFile = filename === "page.tsx" || filename === "layout.tsx" || filename.endsWith("_Pres.tsx");
+    const isPresentationFile =
+      filename.endsWith("page.tsx") || filename.endsWith("layout.tsx") || filename.endsWith("_Pres.tsx");
     if (!isPresentationFile) return {};
 
     return {

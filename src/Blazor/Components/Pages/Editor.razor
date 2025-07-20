@@ -14,15 +14,15 @@
                 {
                     @if (message.Role == EditorChatMessageRole.Service)
                     {
-                        <div class="m-2 mr-6 p-6 bg-neutral-200 rounded-2xl">
-                            @message.Text
+                        <div class="m-2 mr-6 p-6 pb-5 bg-neutral-200 rounded-2xl" >
+                            <RadzenMarkdown Text=@message.Text />
                         </div>
                     }
 
                     @if (message.Role == EditorChatMessageRole.User)
                     {
-                        <div class="m-2 ml-6 p-6 bg-neutral-200 rounded-2xl">
-                            @message.Text
+                        <div class="m-2 ml-6 p-6 pb-5 bg-neutral-200 rounded-2xl">
+                            <RadzenMarkdown Text=@message.Text />
                         </div>
                     }
                 }
@@ -85,8 +85,8 @@
             var promptedUserMessageValue = userMessageValue;
             userMessageValue = "";
             StateHasChanged();
-            var serviceResponseMessageValue = await claudeCodeCliHelper.Prompt(promptedUserMessageValue, ct) ?? "👽";
             await jsUtils.ScrollToBottom("edux-chathistory", ct);
+            var serviceResponseMessageValue = await claudeCodeCliHelper.Prompt(promptedUserMessageValue, ct) ?? "👽";
             messageHistory.Add(new() { Role = EditorChatMessageRole.Service, Text = serviceResponseMessageValue });
             StateHasChanged();
             await jsUtils.ScrollToBottom("edux-chathistory", ct);

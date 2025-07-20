@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-export default function HmrHeartbeat() {
+export default function App_HmrHeartbeat_Cont() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return;
 

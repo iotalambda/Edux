@@ -1,4 +1,4 @@
-export default function app_Navbar_Pres({
+export default function App_Navbar_Pres({
   onToggleSidebar,
   onToggleTheme,
   isDark,

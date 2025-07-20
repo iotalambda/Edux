@@ -27,6 +27,7 @@ export default tseslint.config([
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/ban-ts-comment": "off",
       "react-hooks/exhaustive-deps": "off",
+      "react-hooks/no-children-prop": "off",
     },
   },
   {

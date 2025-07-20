@@ -2,7 +2,7 @@
 
 import { useState, useEffect, ReactNode } from "react";
 
-interface DashboardProps {
+interface App_Layout_Cont_Props {
   renderAppLayout: (props: {
     toggleSidebar: () => void;
     toggleTheme: () => void;
@@ -12,7 +12,7 @@ interface DashboardProps {
   }) => ReactNode;
 }
 
-export default function Dashboard({ renderAppLayout }: DashboardProps) {
+export default function App_Layout_Cont({ renderAppLayout }: App_Layout_Cont_Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
 

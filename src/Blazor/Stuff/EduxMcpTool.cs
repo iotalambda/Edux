@@ -1,30 +1,11 @@
 using System.ComponentModel;
+using Microsoft.AspNetCore.Mvc;
 using ModelContextProtocol.Server;
 
 namespace Edux.Blazor.Stuff;
 
-internal static class NextJSConsoleOutputBuffer
-{
-    static readonly Lock @lock = new();
-    static List<string> buffer = [];
-
-    public static void Push(string line)
-    {
-        using var _ = @lock.EnterScope();
-        buffer.Add(line);
-    }
-
-    public static List<string> Drain()
-    {
-        using var _ = @lock.EnterScope();
-        var result = buffer;
-        buffer = [];
-        return result;
-    }
-}
-
 [McpServerToolType]
-public static class EduxMcpTool
+public class EduxMcpTool
 {
     [
         McpServerTool(
@@ -37,6 +18,19 @@ public static class EduxMcpTool
             "Gets the pending Next.JS `npm run dev` stdout and stderr entries from the buffer and flushes it. You may use this to inspect compile errors after you have saved files within the Next.JS project."
         )
     ]
-    public static IEnumerable<string> DrainNextJSNpmRunDevConsoleOutputBuffer() =>
+    public IEnumerable<string> DrainNextJSNpmRunDevConsoleOutputBuffer() =>
         NextJSConsoleOutputBuffer.Drain();
+
+    [
+        McpServerTool(
+            Destructive = false,
+            Idempotent = true,
+            ReadOnly = true,
+            Name = "ExecNpmRunLint"
+        ),
+        Description("Executes `npm run lint` and returns the stdout and stderr entries.")
+    ]
+    public IEnumerable<string> ExecNpmRunLint(
+        [FromServices] NextJSNpmRunLintExecutor nextJSNpmRunLintExecutor
+    ) => nextJSNpmRunLintExecutor.Execute();
 }
